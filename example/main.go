@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"log"
 	"time"
@@ -91,9 +92,16 @@ func main() {
 
 	// 示例6: DoT SOCKS5 代理示例
 	fmt.Println("\n=== DoT SOCKS5 代理示例 ===")
+
+	// 创建正确的TLS配置
+	tlsConfig := &tls.Config{
+		InsecureSkipVerify: true, // 跳过证书验证
+	}
+
 	client6 := godns.New(
 		godns.WithProtocol(godns.DoT),
 		godns.WithSOCKS5Proxy("127.0.0.1:20170", nil), // 无认证
+		godns.WithTLSConfig(tlsConfig),
 	)
 
 	ctx, cancel = context.WithTimeout(context.Background(), 3*time.Second)

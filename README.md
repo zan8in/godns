@@ -73,8 +73,6 @@ func main() {
 ```go
 client := godns.New(
     godns.WithProtocol(godns.UDP),
-    godns.WithTimeout(3*time.Second),
-    godns.WithRetries(2),
 )
 ```
 
@@ -82,7 +80,6 @@ client := godns.New(
 ```go
 client := godns.New(
     godns.WithProtocol(godns.DoT),
-    godns.WithTimeout(5*time.Second),
 )
 ```
 
@@ -90,7 +87,6 @@ client := godns.New(
 ```go
 client := godns.New(
     godns.WithProtocol(godns.DoH),
-    godns.WithTimeout(10*time.Second),
 )
 ```
 
@@ -114,6 +110,11 @@ client := godns.New(
     godns.WithSOCKS5Proxy("127.0.0.1:1080", nil), // 无认证
 )
 
+// 创建正确的TLS配置
+tlsConfig := &tls.Config{
+    InsecureSkipVerify: true, // 跳过证书验证
+}
+
 // 带认证的SOCKS5代理
 auth := &godns.ProxyAuth{
     Username: "user",
@@ -121,6 +122,7 @@ auth := &godns.ProxyAuth{
 }
 client := godns.New(
     godns.WithSOCKS5Proxy("127.0.0.1:1080", auth),
+    godns.WithTLSConfig(tlsConfig), // DoT 协议需要
 )
 ```
 
@@ -193,28 +195,39 @@ for _, res := range result.Results {
 ### DoH服务器
 ```go
 var DoHServers = []string{
-    "https://dns.alidns.com/dns-query",     // 阿里DoH
-    "https://doh.pub/dns-query",            // DoH.Pub
-    "https://1.12.12.12/dns-query",        // DNSPod DoH
-    "https://120.53.53.53/dns-query",      // DNSPod DoH备用
+    "https://dns.alidns.com/dns-query", // 阿里DoH - 保留
+	"https://doh.pub/dns-query",        // DoH.Pub - 国内优化
+	"https://1.12.12.12/dns-query",     // DNSPod DoH
+	"https://120.53.53.53/dns-query",   // DNSPod DoH备用
+	"https://1.1.1.1/dns-query",        // Cloudflare - 可选，但在国内可能较慢
 }
 ```
 
 ### DoT服务器
 ```go
 var DoTServers = []string{
-    "8.8.8.8:853",
-    "1.1.1.1:853",
+    "223.5.5.5:853",    // 阿里DoT
+	"223.6.6.6:853",    // 阿里DoT备用
+	"1.12.12.12:853",   // DNSPod DoT
+	"120.53.53.53:853", // DNSPod DoT备用
+	"8.8.8.8:853",      // Google - 在国内可能不稳定
+	"1.1.1.1:853",      // Cloudflare - 在国内可能不稳定
 }
 ```
 
 ### UDP服务器
 ```go
 var UDPServers = []string{
-    "8.8.8.8:53",         // Google DNS
-    "1.1.1.1:53",         // Cloudflare DNS
-    "114.114.114.114:53", // 114 DNS
-    "223.5.5.5:53",       // 阿里DNS
+    "223.5.5.5:53",       // 阿里DNS - 保留
+	"223.6.6.6:53",       // 阿里DNS备用
+	"114.114.114.114:53", // 114DNS - 保留
+	"114.114.115.115:53", // 114DNS备用
+	"1.12.12.12:53",      // DNSPod
+	"120.53.53.53:53",    // DNSPod备用
+	"119.29.29.29:53",    // DNSPod腾讯
+	"182.254.116.116:53", // DNSPod腾讯备用
+	"8.8.8.8:53",         // Google - 可选，但可能被污染
+	"1.1.1.1:53",         // Cloudflare - 可选，但在国内较慢
 }
 ```
 
