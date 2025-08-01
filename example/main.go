@@ -89,29 +89,6 @@ func main() {
 		}
 	}
 
-	// 示例5: UDP HTTP 代理示例
-	fmt.Println("\n=== UDP HTTP 代理示例 ===")
-	client5 := godns.New(
-		godns.WithHTTPProxy("127.0.0.1:20170", nil), // 无认证
-	)
-
-	ctx, cancel = context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
-
-	result, err = client5.MultiQueryA(ctx, "deepseek.com")
-	if err != nil {
-		log.Printf("HTTP 代理查询失败: %v", err)
-	} else {
-		if len(result.AllIPs) == 0 {
-			fmt.Printf("  UDP 可能不支持 HTTP 代理\n")
-		} else {
-			fmt.Printf("通过代理查询成功: %s\n", result.Domain)
-			for _, ip := range result.AllIPs {
-				fmt.Printf("  %s -> %s\n", result.Domain, ip)
-			}
-		}
-	}
-
 	// 示例6: DoT SOCKS5 代理示例
 	fmt.Println("\n=== DoT SOCKS5 代理示例 ===")
 	client6 := godns.New(
@@ -128,30 +105,6 @@ func main() {
 	} else {
 		if len(result.AllIPs) == 0 {
 			fmt.Printf("  DoT 可能不支持 SOCKS5 代理\n")
-		} else {
-			fmt.Printf("通过代理查询成功: %s\n", result.Domain)
-			for _, ip := range result.AllIPs {
-				fmt.Printf("  %s -> %s\n", result.Domain, ip)
-			}
-		}
-	}
-
-	// 示例7: DoT HTTP 代理示例
-	fmt.Println("\n=== DoT HTTP 代理示例 ===")
-	client7 := godns.New(
-		godns.WithProtocol(godns.DoT),
-		godns.WithHTTPProxy("127.0.0.1:20170", nil), // 无认证
-	)
-
-	ctx, cancel = context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
-
-	result, err = client7.MultiQueryA(ctx, "deepseek.com")
-	if err != nil {
-		log.Printf("HTTP 代理查询失败: %v", err)
-	} else {
-		if len(result.AllIPs) == 0 {
-			fmt.Printf("  DoT 可能不支持 HTTP 代理\n")
 		} else {
 			fmt.Printf("通过代理查询成功: %s\n", result.Domain)
 			for _, ip := range result.AllIPs {

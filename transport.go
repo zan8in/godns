@@ -55,32 +55,57 @@ func (c *Client) queryUDPTCP(ctx context.Context, msg *dns.Msg, server string) (
 
 // exchangeWithProxy 通过代理进行DNS查询
 func (c *Client) exchangeWithProxy(ctx context.Context, msg *dns.Msg, server string) (*dns.Msg, error) {
-	proxyDialer, err := c.createDialer()
-	if err != nil {
-		return nil, fmt.Errorf("failed to create proxy dialer: %v", err)
-	}
+    proxyDialer, err := c.createDialer()
+    if err != nil {
+        return nil, fmt.Errorf("failed to create proxy dialer: %v", err)
+    }
 
-	// 通过代理建立连接
-	conn, err := proxyDialer.Dial("tcp", server)
-	if err != nil {
-		return nil, fmt.Errorf("failed to dial through proxy: %v", err)
-	}
-	defer conn.Close()
+    // 使用 context 控制连接超时
+    conn, err := proxyDialer.Dial("tcp", server)
+    if err != nil {
+        return nil, fmt.Errorf("failed to dial through proxy: %v", err)
+    }
+    defer conn.Close()
 
-	// 手动发送DNS查询
-	dnsConn := &dns.Conn{Conn: conn}
-	err = dnsConn.WriteMsg(msg)
-	if err != nil {
-		return nil, fmt.Errorf("failed to write DNS message: %v", err)
-	}
+    // 设置连接的读写超时
+    if deadline, ok := ctx.Deadline(); ok {
+        conn.SetDeadline(deadline)
+    }
 
-	// 读取响应
-	response, err := dnsConn.ReadMsg()
-	if err != nil {
-		return nil, fmt.Errorf("failed to read DNS response: %v", err)
-	}
+    // 使用 goroutine 和 channel 来支持 context 取消
+    type result struct {
+        response *dns.Msg
+        err      error
+    }
+    
+    resultChan := make(chan result, 1)
+    
+    go func() {
+        // 手动发送DNS查询
+        dnsConn := &dns.Conn{Conn: conn}
+        err := dnsConn.WriteMsg(msg)
+        if err != nil {
+            resultChan <- result{nil, fmt.Errorf("failed to write DNS message: %v", err)}
+            return
+        }
 
-	return response, nil
+        // 读取响应
+        response, err := dnsConn.ReadMsg()
+        if err != nil {
+            resultChan <- result{nil, fmt.Errorf("failed to read DNS response: %v", err)}
+            return
+        }
+        
+        resultChan <- result{response, nil}
+    }()
+    
+    // 等待结果或 context 取消
+    select {
+    case res := <-resultChan:
+        return res.response, res.err
+    case <-ctx.Done():
+        return nil, ctx.Err()
+    }
 }
 
 // exchangeDoTWithProxy 通过代理进行DoT查询
@@ -97,27 +122,53 @@ func (c *Client) exchangeDoTWithProxy(ctx context.Context, msg *dns.Msg, server 
 	}
 	defer conn.Close()
 
-	// 升级到TLS连接
-	tlsConn := tls.Client(conn, tlsConfig)
-	err = tlsConn.Handshake()
-	if err != nil {
-		return nil, fmt.Errorf("TLS handshake failed: %v", err)
+	// 设置连接的读写超时
+	if deadline, ok := ctx.Deadline(); ok {
+		conn.SetDeadline(deadline)
 	}
 
-	// 手动发送DNS查询
-	dnsConn := &dns.Conn{Conn: tlsConn}
-	err = dnsConn.WriteMsg(msg)
-	if err != nil {
-		return nil, fmt.Errorf("failed to write DNS message: %v", err)
+	// 使用 goroutine 和 channel 来支持 context 取消
+	type result struct {
+		response *dns.Msg
+		err      error
 	}
+	
+	resultChan := make(chan result, 1)
+	
+	go func() {
+		// 升级到TLS连接
+		tlsConn := tls.Client(conn, tlsConfig)
+		err := tlsConn.Handshake()
+		if err != nil {
+			resultChan <- result{nil, fmt.Errorf("TLS handshake failed: %v", err)}
+			return
+		}
 
-	// 读取响应
-	response, err := dnsConn.ReadMsg()
-	if err != nil {
-		return nil, fmt.Errorf("failed to read DNS response: %v", err)
+		// 手动发送DNS查询
+		dnsConn := &dns.Conn{Conn: tlsConn}
+		err = dnsConn.WriteMsg(msg)
+		if err != nil {
+			resultChan <- result{nil, fmt.Errorf("failed to write DNS message: %v", err)}
+			return
+		}
+
+		// 读取响应
+		response, err := dnsConn.ReadMsg()
+		if err != nil {
+			resultChan <- result{nil, fmt.Errorf("failed to read DNS response: %v", err)}
+			return
+		}
+		
+		resultChan <- result{response, nil}
+	}()
+	
+	// 等待结果或 context 取消
+	select {
+	case res := <-resultChan:
+		return res.response, res.err
+	case <-ctx.Done():
+		return nil, ctx.Err()
 	}
-
-	return response, nil
 }
 
 // queryDoT DNS over TLS查询
