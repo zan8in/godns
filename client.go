@@ -1,9 +1,12 @@
 package godns
 
 import (
+	"context"
 	"crypto/tls"
 	"net/http"
 	"time"
+
+	"github.com/miekg/dns"
 )
 
 var DoHServers = []string{
@@ -92,14 +95,14 @@ type ProxyAuth struct {
 type Option func(*Config)
 
 // NewDefault 创建默认客户端
+// 在 NewDefault 函数中设置合理的默认重试次数
 func NewDefault() *Client {
 	return &Client{
 		config: &Config{
-			Timeout:   5 * time.Second,
-			Retries:   3,
-			Protocol:  UDP,
-			Servers:   UDPServers,
-			ProxyType: NoProxy,
+			Timeout:  5 * time.Second,
+			Retries:  2, // 默认重试2次，总共3次尝试
+			Protocol: UDP,
+			Servers:  UDPServers,
 		},
 	}
 }
@@ -181,4 +184,37 @@ func WithHTTPClient(client *http.Client) Option {
 	return func(c *Config) {
 		c.HTTPClient = client
 	}
+}
+
+// 在 Config 结构体中，Retries 字段已存在，无需修改
+
+// 添加重试包装器函数
+func (c *Client) withRetry(ctx context.Context, operation func() (*dns.Msg, error)) (*dns.Msg, error) {
+	var lastErr error
+
+	for attempt := 0; attempt <= c.config.Retries; attempt++ {
+		result, err := operation()
+		if err == nil {
+			return result, nil
+		}
+
+		lastErr = err
+
+		// 最后一次尝试失败，直接返回
+		if attempt == c.config.Retries {
+			break
+		}
+
+		// 简单的线性退避：100ms * (attempt + 1)
+		delay := time.Duration(attempt+1) * 100 * time.Millisecond
+
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-time.After(delay):
+			// 继续重试
+		}
+	}
+
+	return nil, lastErr
 }

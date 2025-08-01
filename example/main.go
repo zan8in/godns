@@ -19,7 +19,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 4*time.Second)
 	defer cancel()
 
-	result, err := client1.MultiQueryA(ctx, "deepseek.com")
+	result, err := client1.MultiQueryA(ctx, "telegram.com")
 	if err != nil {
 		log.Printf("查询失败: %v", err)
 	} else {
@@ -40,7 +40,7 @@ func main() {
 	ctx, cancel = context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	result, err = client2.MultiQueryA(ctx, "deepseek.com")
+	result, err = client2.MultiQueryA(ctx, "google.com")
 	if err != nil {
 		log.Printf("查询失败: %v", err)
 	} else {
@@ -61,7 +61,7 @@ func main() {
 	ctx, cancel = context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	result, err = client3.MultiQueryA(ctx, "deepseek.com")
+	result, err = client3.MultiQueryA(ctx, "google.com")
 	if err != nil {
 		log.Printf("查询失败: %v", err)
 	} else {
@@ -80,7 +80,7 @@ func main() {
 	ctx, cancel = context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	result, err = client4.MultiQueryA(ctx, "deepseek.com")
+	result, err = client4.MultiQueryA(ctx, "google.com")
 	if err != nil {
 		log.Printf("SOCKS5 代理查询失败: %v", err)
 	} else {
@@ -107,7 +107,7 @@ func main() {
 	ctx, cancel = context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	result, err = client6.MultiQueryA(ctx, "deepseek.com")
+	result, err = client6.MultiQueryA(ctx, "google.com")
 	if err != nil {
 		log.Printf("SOCKS5 代理查询失败: %v", err)
 	} else {
@@ -131,7 +131,7 @@ func main() {
 	ctx, cancel = context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	result, err = client8.MultiQueryA(ctx, "deepseek.com")
+	result, err = client8.MultiQueryA(ctx, "google.com")
 	if err != nil {
 		log.Printf("SOCK5 代理查询失败: %v", err)
 	} else {
@@ -155,7 +155,7 @@ func main() {
 	ctx, cancel = context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	result, err = client9.MultiQueryA(ctx, "deepseek.com")
+	result, err = client9.MultiQueryA(ctx, "google.com")
 	if err != nil {
 		log.Printf("HTTP 代理查询失败: %v", err)
 	} else {
