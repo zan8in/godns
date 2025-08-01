@@ -10,30 +10,30 @@ var DoHServers = []string{
 	"https://dns.alidns.com/dns-query", // 阿里DoH - 保留
 	"https://doh.pub/dns-query",        // DoH.Pub - 国内优化
 	"https://1.12.12.12/dns-query",     // DNSPod DoH
-	"https://120.53.53.53/dns-query",   // DNSPod DoH备用
-	"https://1.1.1.1/dns-query",        // Cloudflare - 可选，但在国内可能较慢
+	// "https://120.53.53.53/dns-query",   // DNSPod DoH备用
+	"https://1.1.1.1/dns-query", // Cloudflare - 可选，但在国内可能较慢
 }
 
 var DoTServers = []string{
-	"223.5.5.5:853",    // 阿里DoT
-	"223.6.6.6:853",    // 阿里DoT备用
-	"1.12.12.12:853",   // DNSPod DoT
-	"120.53.53.53:853", // DNSPod DoT备用
-	"8.8.8.8:853",      // Google - 在国内可能不稳定
-	"1.1.1.1:853",      // Cloudflare - 在国内可能不稳定
+	"223.5.5.5:853", // 阿里DoT
+	// "223.6.6.6:853",    // 阿里DoT备用
+	"1.12.12.12:853", // DNSPod DoT
+	// "120.53.53.53:853", // DNSPod DoT备用
+	"8.8.8.8:853", // Google - 在国内可能不稳定
+	"1.1.1.1:853", // Cloudflare - 在国内可能不稳定
 }
 
 var UDPServers = []string{
-	"223.5.5.5:53",       // 阿里DNS - 保留
-	"223.6.6.6:53",       // 阿里DNS备用
+	"223.5.5.5:53", // 阿里DNS - 保留
+	// "223.6.6.6:53",       // 阿里DNS备用
 	"114.114.114.114:53", // 114DNS - 保留
-	"114.114.115.115:53", // 114DNS备用
-	"1.12.12.12:53",      // DNSPod
-	"120.53.53.53:53",    // DNSPod备用
-	"119.29.29.29:53",    // DNSPod腾讯
-	"182.254.116.116:53", // DNSPod腾讯备用
-	"8.8.8.8:53",         // Google - 可选，但可能被污染
-	"1.1.1.1:53",         // Cloudflare - 可选，但在国内较慢
+	// "114.114.115.115:53", // 114DNS备用
+	"1.12.12.12:53",   // DNSPod
+	"120.53.53.53:53", // DNSPod备用
+	"119.29.29.29:53", // DNSPod腾讯
+	// "182.254.116.116:53", // DNSPod腾讯备用
+	"8.8.8.8:53", // Google - 可选，但可能被污染
+	"1.1.1.1:53", // Cloudflare - 可选，但在国内较慢
 }
 
 // Client DNS客户端
